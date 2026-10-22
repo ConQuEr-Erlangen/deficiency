@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deficiency Indices</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='11' fill='%232f5d8a'/%3E%3Cpath d='M12 11v6' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3Ccircle cx='12' cy='7.3' r='1.5' fill='white'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #f7f7f5; --card: #ffffff; --fg: #1d1d1b; --muted: #6b6b66; --border: #dddcd6;
+    --accent: #2f5d8a; --good: #306f1d; --soso: #c4661f; --bad: #a62b17;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #17181a; --card: #212226; --fg: #ececea; --muted: #9b9b96; --border: #34353a;
+      --accent: #7fb0e0; --good: #7cc260; --soso: #f0a060; --bad: #ef7a62;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 8vh 16px 64px; }
+  h1 { font-size: 1.6rem; font-weight: 600; text-align: center; margin: 0 0 4px; }
+  .sub { text-align: center; color: var(--muted); margin: 0 0 28px; font-size: .95rem; }
+  code, input, .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+
+  form { display: flex; gap: 8px; }
+  #poly {
+    flex: 1; min-width: 0; font-size: 1.1rem; padding: 14px 16px;
+    border: 1px solid var(--border); border-radius: 10px; background: var(--card); color: var(--fg);
+  }
+  #poly:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  button {
+    font: inherit; cursor: pointer; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--card); color: var(--fg); padding: 0 18px;
+  }
+  button.primary { background: var(--accent); border-color: var(--accent); color: var(--bg); font-weight: 600; }
+  button:disabled { opacity: .5; cursor: default; }
+  @media (max-width: 560px) {
+    form { flex-wrap: wrap; }
+    #poly { flex-basis: 100%; }
+    form button { flex: 1; padding: 10px 18px; }
+  }
+
+  #status { display: flex; align-items: center; justify-content: center; gap: 10px;
+            min-height: 2.5em; margin: 14px 0; color: var(--muted); }
+  .spinner {
+    width: 20px; height: 20px; border-radius: 50%; flex: none;
+    border: 3px solid var(--border); border-top-color: var(--accent);
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #cancel { padding: 4px 12px; font-size: .85rem; }
+
+  details.examples { background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+                     padding: 10px 16px; margin-bottom: 24px; }
+  details.examples summary { cursor: pointer; font-weight: 600; }
+  .group { margin: 12px 0 4px; }
+  .group h3 { font-size: .8rem; text-transform: uppercase; letter-spacing: .05em;
+              color: var(--muted); margin: 0 0 6px; font-weight: 600; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .8rem;
+          padding: 4px 10px; border-radius: 999px; max-width: 100%;
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .chip:hover { border-color: var(--accent); }
+
+  .result { background: var(--card); border: 1px solid var(--border); border-left: 5px solid var(--muted);
+            border-radius: 10px; padding: 14px 18px; margin-bottom: 12px; }
+  .result.good { border-left-color: var(--good); }
+  .result.soso { border-left-color: var(--soso); }
+  .result.bad, .result.error { border-left-color: var(--bad); }
+  .result .h { font-family: ui-monospace, Menlo, Consolas, monospace; word-break: break-all; }
+  .result .line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; margin-top: 6px; }
+  .result .n { font-size: 1.25rem; font-variant-numeric: tabular-nums; }
+  .badge { font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+  .icon { width: 1.25em; height: 1.25em; flex: none; align-self: center; }
+  .result.latest .icon { width: 1.5em; height: 1.5em; }
+  .good .badge { color: var(--good); } .soso .badge { color: var(--soso); }
+  .bad .badge, .error .badge { color: var(--bad); }
+  .result .time { color: var(--muted); font-size: .85rem; margin-left: auto; }
+  .result pre { white-space: pre-wrap; font-size: .8rem; color: var(--muted); margin: 8px 0 0; }
+  .result details summary { cursor: pointer; color: var(--muted); font-size: .85rem; margin-top: 6px; }
+  .result.running { border-left-color: var(--accent); }
+  .result.latest {
+    background: color-mix(in srgb, var(--accent) 7%, var(--card));
+    box-shadow: 0 0 0 3px var(--accent), 0 6px 22px rgba(0, 0, 0, .18);
+    margin-bottom: 22px; padding: 18px 22px;
+  }
+  .result.latest .h { font-size: 1.1rem; font-weight: 600; }
+  .result.latest .n { font-size: 1.6rem; font-weight: 600; }
+  .result:not(.latest) { opacity: .6; }
+
+  /* user input error: non-hermitian operator */
+  .result.nonhermitian { border-left-color: var(--bad); background: color-mix(in srgb, var(--bad) 10%, var(--card)); }
+  .result.nonhermitian.latest { box-shadow: 0 0 0 3px var(--bad), 0 6px 22px rgba(0, 0, 0, .18); }
+  .result .problem { color: var(--bad); font-size: 1.15rem; font-weight: 700; }
+  .result .hint { margin-top: 4px; }
+
+  #poly.invalid { border-color: var(--bad); outline: 2px solid var(--bad); outline-offset: -1px; }
+  #inputError { color: var(--bad); font-weight: 600; margin: 8px 2px 0; }
+  #inputError:empty { display: none; }
+  #notice { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 8px 0 0; padding: 8px 12px;
+            border-radius: 10px; border: 1px solid var(--soso); background: color-mix(in srgb, var(--soso) 10%, var(--card)); }
+  #notice:empty { display: none; }
+  .fix { padding: 4px 12px; font-size: .9rem; border-color: var(--accent); color: var(--accent); }
+  .result .fix { margin-top: 10px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Deficiency Indices</h1>
+  <p class="sub">Polynomials in <code>a</code>, <code>adag</code> or <code>x</code>, <code>p</code>
+    — use <code>^</code> for powers (<code>*</code> is optional), <code>i</code> for the imaginary unit,
+    <code>comm(A, B)</code> for commutators. Runs entirely in your browser.</p>
+
+  <form id="form">
+    <input id="poly" autocomplete="off" spellcheck="false" placeholder="e.g. a^4 + adag^4 + 3(adag a)^2" autofocus>
+    <button id="weyl" type="button" disabled
+            title="Treat the input as a classical polynomial and replace it by its Weyl-ordered operator">Weyl-symmetrize</button>
+    <button id="herm" type="button" disabled
+            title="Replace the input H by its Hermitian part (H + H†)/2, keeping the ordering">Hermitian part</button>
+    <button class="primary" id="run" type="submit" disabled>Run</button>
+  </form>
+  <div id="inputError"></div>
+  <div id="notice"></div>
+
+  <div id="status"></div>
+
+  <details class="examples">
+    <summary>Examples</summary>
+    <div id="examples"></div>
+  </details>
+
+  <section id="results"></section>
+</main>
+
+<script>
+const EXAMPLES = [
+  ["Gaussian and diagonal operators", ["a+adag", "a^2+adag^2", "p^2-x^2", "(adag*a)^4"]],
+  ["Higher order squeezing", ["a^3+adag^3", "a^5+adag^5"]],
+  ["Squeezing with Kerr term", ["a^4+adag^4 + 10*(adag*a)", "a^4+adag^4 + 1/10*(adag*a)^3",
+                                "a^4+adag^4 + (adag*a)^2", "a^4+adag^4 + 3*(adag*a)^2"]],
+  ["Schrödinger operators", ["p^2+x^3", "p^2+x^4", "p^2-x^4"]],
+  ["No self-adjoint extensions", ["p^3*x+x*p^3", "p*x^3+x^3*p"]],
+  ["Lloyd Braunstein 1999", ["i*comm((p^2+x^2)^2/4,x)", "i*comm((p^2+x^2)^2/4,p)",
+                             "comm(x,comm((p^2+x^2)^2/4,x*p+p*x))", "comm(p,comm((p^2+x^2)^2/4,x*p+p*x))"]],
+  ["Gordillo Hachuel 2026", ["x^2*p+x*p*x+p*x^2", "x*p^2+p*x*p+p^2*x", "x^3*p+x^2*p*x+x*p*x^2+p*x^3",
+                             "x^2*p^2+x*p*x*p+x*p^2*x+p*x^2*p+p*x*p*x+p^2*x^2", "x*p^3+p*x*p^2+p^2*x*p+p^3*x"]],
+  ["Boutin 2017", ["adag^2*a^2-(adag*a^3+adag^3*a)-10*(adag^4+a^4)",
+                   "adag^2*a^2-(adag*a^3+adag^3*a)-1/10*(adag^4+a^4)",
+                   "adag^2*a^2-1/10*(adag*a^3+adag^3*a)-1/10*(adag^4+a^4)"]],
+  ["Kerr non-linearities", ["adag^2+a^2+adag^2*a^2", "adag*a-x^4"]],
+  ["Cubic phase gate", ["x^3"]],
+  ["Kasri 2026", ["i*((1/10*(adag-a)+1/2000*(adag^2*a-adag*a^2)))",
+                  "i*((10*(adag-a)+500*(adag^2*a-adag*a^2)))", "adag^2+a^2+1/2*(adag^3*a+adag*a^3)"]],
+];
+
+const $ = (id) => document.getElementById(id);
+const input = $("poly"), runBtn = $("run"), weylBtn = $("weyl"), hermBtn = $("herm");
+const statusEl = $("status"), resultsEl = $("results"), inputError = $("inputError"), notice = $("notice");
+const LABELS = { good: "good Hamiltonian", soso: "more physical information necessary", bad: "bad Hamiltonian",
+                 error: "failed", nonhermitian: "not Hermitian" };
+
+// Circle icons (check, cross, info) drawn inline, so no icon font has to be loaded
+const ICON_MARKS = {
+  check: '<path d="M7 12.5l3.2 3.2L17 8.8" fill="none" stroke-width="2.4"/>',
+  cross: '<path d="M8.2 8.2l7.6 7.6M15.8 8.2l-7.6 7.6" fill="none" stroke-width="2.4"/>',
+  info:  '<path d="M12 11v6" fill="none" stroke-width="2.4"/><circle cx="12" cy="7.3" r="1.5" stroke="none"/>',
+};
+const ICON_FOR = { good: "check", soso: "info", bad: "cross", error: "cross" };
+
+function icon(name) {
+  const span = el("span");
+  span.innerHTML =
+    `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/>` +
+    `<g style="stroke: var(--card); fill: var(--card)" stroke-linecap="round" stroke-linejoin="round">${ICON_MARKS[name]}</g></svg>`;
+  return span.firstChild;
+}
+
+function badge(kind, text) {
+  const b = el("span", "badge");
+  if (ICON_FOR[kind]) b.append(icon(ICON_FOR[kind]));
+  b.append(text);
+  return b;
+}
+
+// current: the request the worker is busy with, {id, op: "run" | "weyl" | "herm", ...}
+let worker, ready = false, current = null, nextId = 0;
+
+function setBusy(busy) {
+  runBtn.disabled = weylBtn.disabled = hermBtn.disabled = busy || !ready;
+}
+
+function showInputError(msg) {
+  inputError.textContent = msg;
+  input.classList.toggle("invalid", Boolean(msg));
+}
+
+// "Take Hermitian part" button: puts poly into the input and replaces it by its Hermitian part
+function hermButton(poly) {
+  const b = el("button", "fix", "Take Hermitian part");
+  b.type = "button";
+  b.onclick = () => { input.value = poly; transform("herm", poly); };
+  return b;
+}
+
+// Notice below the input; with poly it also offers the "Take Hermitian part" button
+function showNotice(msg, poly) {
+  notice.replaceChildren();
+  if (msg) notice.append(el("span", null, msg));
+  if (msg && poly != null) notice.append(hermButton(poly));
+}
+
+function setKind(card, kind) {
+  card.classList.remove("running", "good", "soso", "bad", "error", "nonhermitian");
+  card.classList.add(kind);
+}
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  return e;
+}
+
+function setStatus(text, { spinning = false, cancel = false } = {}) {
+  statusEl.replaceChildren();
+  if (spinning) statusEl.append(el("div", "spinner"));
+  if (text) statusEl.append(el("span", null, text));
+  if (cancel) {
+    const b = el("button", null, "Cancel");
+    b.id = "cancel";
+    b.onclick = cancelRun;
+    statusEl.append(b);
+  }
+}
+
+function startWorker() {
+  ready = false;
+  setBusy(true);
+  worker = new Worker("worker.js");
+  worker.onmessage = ({ data: m }) => {
+    if (m.type === "status") setStatus(m.text, { spinning: true });
+    else if (m.type === "ready") { ready = true; setBusy(false); setStatus(""); }
+    else if (m.type === "fatal") setStatus("Could not start Python: " + m.message);
+    else if (current && m.id === current.id) (current.op === "run" ? finish : finishTransform)(m);
+  };
+  worker.onerror = (e) => setStatus("Worker error: " + e.message);
+}
+
+// Rewrite the input in place: "weyl" (Weyl-symmetrize) or "herm" (Hermitian part)
+function transform(op, poly) {
+  poly = poly.trim();
+  if (!poly || !ready || current) return;
+  current = { id: nextId++, op };
+  showInputError("");
+  showNotice("");
+  setBusy(true);
+  setStatus(op === "weyl" ? "Weyl-symmetrizing…" : "Taking the Hermitian part…", { spinning: true });
+  worker.postMessage({ id: current.id, op, poly });
+}
+
+function finishTransform(m) {
+  const { op } = current;
+  current = null;
+  setBusy(false);
+  setStatus("");
+  input.focus();
+  if (m.type === "error") return showInputError(m.message);
+
+  const r = m.result;
+  if (op === "herm" && r.text === "0") {
+    return showInputError("The Hermitian part is zero: the input is anti-Hermitian (H† = −H).");
+  }
+  if (op === "weyl" && r.warnings.length) {
+    return showNotice("⚠ " + r.warnings.join(" "));     // unclear input, left unchanged
+  }
+  input.value = r.text;
+  if (op === "weyl" && !r.hermitian) {
+    showNotice("This symbol is not real, so its Weyl operator is not Hermitian.", r.text);
+  } else if (op === "herm" && !r.changed) {
+    setStatus("The input is already Hermitian.");
+  }
+}
+
+function run(poly) {
+  poly = poly.trim();
+  if (!poly || !ready || current) return;
+  showInputError("");
+  showNotice("");
+  document.querySelector("details.examples").open = false;   // keep the new result in view
+  resultsEl.querySelector(".latest")?.classList.remove("latest");
+  const card = el("div", "result running latest");
+  card.append(el("div", "h", "H = " + poly));
+  const line = el("div", "line");
+  line.append(el("span", "badge", "computing…"));
+  card.append(line);
+  resultsEl.prepend(card);
+
+  current = { id: nextId++, op: "run", poly, card, t0: performance.now() };
+  setBusy(true);
+  setStatus("Computing deficiency indices…", { spinning: true, cancel: true });
+  worker.postMessage({ id: current.id, op: "run", poly });
+}
+
+function finish(m) {
+  const { card, t0, poly } = current;
+  const secs = ((performance.now() - t0) / 1000).toFixed(1) + " s";
+  current = null;
+  setBusy(false);
+  setStatus("");
+
+  const line = el("div", "line");
+  card.querySelector(".line").replaceWith(line);
+  if (m.type === "error") {             // e.g. a syntax error in the input
+    setKind(card, "error");
+    line.append(badge("error", "Error"), el("span", "mono", m.message), el("span", "time", secs));
+    showInputError(m.message);
+    return;
+  }
+
+  const r = m.result;
+  setKind(card, r.kind);
+  card.querySelector(".h").textContent = "H = " + r.display;
+  if (r.kind === "nonhermitian") {
+    line.append(el("span", "problem", "⚠ Input is not Hermitian"), el("span", "time", secs));
+    card.append(el("div", "hint",
+      "Deficiency indices are only defined for symmetric operators, H = H†. " +
+      "Replace H by its Hermitian part (H + H†)/2, or enter a real classical polynomial and press Weyl-symmetrize."),
+      hermButton(poly));
+    showInputError("The operator is not Hermitian (H ≠ H†).");
+    return;
+  }
+  if (r.kind !== "error") {
+    line.append(el("span", "n", `n₊ = ${r.nplus}`), el("span", "n", `n₋ = ${r.nminus}`));
+  }
+  line.append(badge(r.kind, LABELS[r.kind]), el("span", "time", secs));
+
+  const details = r.real ? r.details.slice(0, 1) : r.details;
+  const info = details.map((d, k) =>
+    `z = ${k ? "-i" : "+i"}: state ${d.state}, n = ${d.n}, zeros = ${d.zeros}, ` +
+    `precision = ${Number(d.precision).toPrecision(4)} digits, length = ${d.length}, start = ${d.start}`);
+  const det = el("details");
+  det.open = r.kind === "error";
+  det.append(el("summary", null, "details"),
+             el("pre", null, [r.output.trim(), ...r.warnings.map((w) => "warning: " + w), "", ...info,
+                             ...(r.real ? ["z = -i: not computed, real coefficients imply n₋ = n₊"] : [])].join("\n")));
+  card.append(det);
+}
+
+function cancelRun() {
+  if (!current) return;
+  worker.terminate();
+  const line = el("div", "line");
+  line.append(el("span", "badge", "cancelled"));
+  setKind(current.card, "error");
+  current.card.querySelector(".line").replaceWith(line);
+  current = null;
+  startWorker();          // a fresh worker has to reload Pyodide
+}
+
+// Example chips: click to put the example into the input
+for (const [title, polys] of EXAMPLES) {
+  const g = el("div", "group");
+  g.append(el("h3", null, title));
+  const chips = el("div", "chips");
+  for (const poly of polys) {
+    const b = el("button", "chip", poly);
+    b.type = "button";
+    b.title = poly;
+    b.onclick = () => { input.value = poly; input.focus(); };
+    b.ondblclick = () => { input.value = poly; run(poly); };
+    chips.append(b);
+  }
+  g.append(chips);
+  $("examples").append(g);
+}
+
+$("form").onsubmit = (e) => { e.preventDefault(); run(input.value); };
+weylBtn.onclick = () => transform("weyl", input.value);
+hermBtn.onclick = () => transform("herm", input.value);
+input.oninput = () => { showInputError(""); showNotice(""); };
+startWorker();
+</script>
+</body>
+</html>
