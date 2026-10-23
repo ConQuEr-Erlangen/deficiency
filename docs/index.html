@@ -140,21 +140,18 @@
 const EXAMPLES = [
   ["Gaussian and diagonal operators", ["a+adag", "a^2+adag^2", "p^2-x^2", "(adag*a)^4"]],
   ["Higher order squeezing", ["a^3+adag^3", "a^5+adag^5"]],
-  ["Squeezing with Kerr term", ["a^4+adag^4 + 10*(adag*a)", "a^4+adag^4 + 1/10*(adag*a)^3",
+  ["Squeezing with additional Kerr term", ["a^4+adag^4 + 10*(adag*a)", "a^4+adag^4 + 1/10*(adag*a)^3",
                                 "a^4+adag^4 + (adag*a)^2", "a^4+adag^4 + 3*(adag*a)^2"]],
   ["Schrödinger operators", ["p^2+x^3", "p^2+x^4", "p^2-x^4"]],
   ["No self-adjoint extensions", ["p^3*x+x*p^3", "p*x^3+x^3*p"]],
-  ["Lloyd Braunstein 1999", ["i*comm((p^2+x^2)^2/4,x)", "i*comm((p^2+x^2)^2/4,p)",
-                             "comm(x,comm((p^2+x^2)^2/4,x*p+p*x))", "comm(p,comm((p^2+x^2)^2/4,x*p+p*x))"]],
-  ["Gordillo Hachuel 2026", ["x^2*p+x*p*x+p*x^2", "x*p^2+p*x*p+p^2*x", "x^3*p+x^2*p*x+x*p*x^2+p*x^3",
-                             "x^2*p^2+x*p*x*p+x*p^2*x+p*x^2*p+p*x*p*x+p^2*x^2", "x*p^3+p*x*p^2+p^2*x*p+p^3*x"]],
-  ["Boutin 2017", ["adag^2*a^2-(adag*a^3+adag^3*a)-10*(adag^4+a^4)",
-                   "adag^2*a^2-(adag*a^3+adag^3*a)-1/10*(adag^4+a^4)",
-                   "adag^2*a^2-1/10*(adag*a^3+adag^3*a)-1/10*(adag^4+a^4)"]],
-  ["Kerr non-linearities", ["adag^2+a^2+adag^2*a^2", "adag*a-x^4"]],
+  ["Common Kerr non-linearities", ["adag^2+a^2+adag^2*a^2", "adag*a-x^4"]],
   ["Cubic phase gate", ["x^3"]],
-  ["Kasri 2026", ["i*((1/10*(adag-a)+1/2000*(adag^2*a-adag*a^2)))",
-                  "i*((10*(adag-a)+500*(adag^2*a-adag*a^2)))", "adag^2+a^2+1/2*(adag^3*a+adag*a^3)"]],
+  ["S. Lloyd and S. L. Braunstein, Phys. Rev. Lett. 82, 1784 (1999)", ["i*comm((p^2+x^2)^2/4,x)", "i*comm((p^2+x^2)^2/4,p)",
+                             "comm(x,comm((p^2+x^2)^2/4,x*p+p*x))", "comm(p,comm((p^2+x^2)^2/4,x*p+p*x))"]],
+  ["R. Gordillo-Hachuel, E. Torrontegui, C. de Dios, and R. Puebla, arXiv:2604.09958", ["x^2*p+x*p*x+p*x^2", "x*p^2+p*x*p+p^2*x", "x^3*p+x^2*p*x+x*p*x^2+p*x^3",
+                             "x^2*p^2+x*p*x*p+x*p^2*x+p*x^2*p+p*x*p*x+p^2*x^2", "x*p^3+p*x*p^2+p^2*x*p+p^3*x"]],
+  ["A. Kasri, K. Park, and R. Filip, arXiv:2602.15619", ["i*((1/10*(adag-a)+1/2000*(adag^2*a-adag*a^2)))",
+                  "i*((10*(adag-a)+500*(adag^2*a-adag*a^2)))", "adag^2+a^2+1/2*(adag^3*a+adag*a^3)"]]
 ];
 
 const $ = (id) => document.getElementById(id);
