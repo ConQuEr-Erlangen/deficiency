@@ -2,7 +2,7 @@
 // quick_deficiency_indices for every {id, poly} message it receives.
 
 const PYODIDE_URL = "https://cdn.jsdelivr.net/pyodide/v0.27.2/full/";
-const MODULE_URL = new URL("../block_jacobi_mp.py", self.location).href;
+const MODULE_URL = new URL("block_jacobi_mp.py", self.location).href;
 
 importScripts(PYODIDE_URL + "pyodide.js");
 
