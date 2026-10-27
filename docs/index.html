@@ -23,6 +23,8 @@
   }
   main { max-width: 760px; margin: 0 auto; padding: 8vh 16px 64px; }
   h1 { font-size: 1.6rem; font-weight: 600; text-align: center; margin: 0 0 4px; }
+  .cite { text-align: center; color: var(--muted); margin: 0 0 12px; font-size: .85rem; }
+  .cite a { color: var(--accent); }
   .sub { text-align: center; color: var(--muted); margin: 0 0 28px; font-size: .95rem; }
   code, input, .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
 
@@ -111,8 +113,11 @@
 <body>
 <main>
   <h1>Deficiency Indices</h1>
-  <p class="sub">Enter a polynomials in <code>a</code>, <code>adag</code> or <code>x</code>, <code>p</code>
-    — use <code>^</code> for powers (<code>*</code> is optional), <code>i</code> for the imaginary unit,
+  <p class="cite">Implements the method of
+    <a href="https://arxiv.org/abs/2610.33545">arXiv:2610.33545</a></p>
+  <p class="sub">
+    Enter a polynomials in <code>a</code>, <code>adag</code> or <code>x</code>, <code>p</code>
+    — use <code>^</code> for powers, <code>*</code> or spaces for multiplication, <code>i</code> for the imaginary unit,
     <code>comm(A, B)</code> for commutators.</p>
 
   <form id="form">
